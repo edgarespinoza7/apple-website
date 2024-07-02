@@ -25,6 +25,12 @@ const VideoCarousel = () => {
   const { isEnd, startPlay, videoId, isLastVideo, isPlaying } = video;
 
   useGSAP(() => {
+    gsap.to("#slider", {
+      transform: `translateX(${-100 * videoId}%)`,
+      duration: 2,
+      ease: "power2.inOut",
+    });
+
     gsap.to("#video", {
       scrollTrigger: {
         trigger: "#video",
@@ -89,7 +95,9 @@ const VideoCarousel = () => {
 
       const animUpdate = () => {
         anim.progress(
-          videoRef.current[videoId] / hightlightsSlides[videoId].videoDuration);
+          videoRef.current[videoId].currentTime /
+            hightlightsSlides[videoId].videoDuration
+        );
       };
 
       if (isPlaying) {
@@ -135,6 +143,12 @@ const VideoCarousel = () => {
           isPlaying: !prevVideo.isPlaying,
         }));
         break;
+        case "pause":
+        setVideo((prevVideo) => ({
+          ...prevVideo,
+          isPlaying: !prevVideo.isPlaying,
+        }));
+        break;
       default:
         return video;
     }
@@ -152,7 +166,15 @@ const VideoCarousel = () => {
                   playsInline={true}
                   preload="auto"
                   muted
+                  className={`${list.id === 2 && 'translate-x-44'}
+                    pointer-events-none
+                    `}
                   ref={(el) => (videoRef.current[i] = el)}
+                  onEnded={() =>
+                    i !== 3
+                      ? handleProcess("video-end", i)
+                      : handleProcess("video-last")
+                  }
                   onPlay={() => {
                     setVideo((prevVideo) => ({
                       ...prevVideo,
@@ -182,7 +204,7 @@ const VideoCarousel = () => {
           {videoRef.current.map((_, i) => (
             <span
               key={i}
-              className="mx-2 w-3 h-3 bg-gray-200 rounded-full cursor-pointer"
+              className="mx-2 w-3 h-3 bg-gray-200 rounded-full relative cursor-pointer"
               ref={(el) => (videoDivRef.current[i] = el)}
             >
               <span
